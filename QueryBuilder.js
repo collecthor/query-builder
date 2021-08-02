@@ -111,17 +111,6 @@ class QueryBuilder {
     });
   }
 
-  getFormattedResult() {
-    // Needed because otherwise the query stored in the aplication loses its ids
-    const copiedQuery = this.query.map((queryItem) => {
-      return {
-        criterium: queryItem.criterium,
-        values: queryItem.values,
-      };
-    });
-    return copiedQuery;
-  }
-
   #addNewCriteriumButton(element) {
     const criteriumButton = document.createElement("button");
     criteriumButton.classList.add("criterium-button");
@@ -156,11 +145,6 @@ class QueryBuilder {
       });
     }
     this.#lastCriteria[selectElement.parentElement.id] = criterium;
-    // if (this.#lastCriterium !== criterium) {
-    //   for (let option in conditionSelect.options) {
-    //     conditionSelect.options.remove(0);
-    //   }
-    // }
     let addConditionButton = selectElement.parentNode.querySelector(".add-condition-text");
     // Create the element if it does not exist, else add a new element
     if (conditionsDiv === null) {
@@ -254,8 +238,8 @@ class QueryBuilder {
     } else if (this.#inputTypes["select"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
       if (condition.nextElementSibling !== null && condition.nextElementSibling.tagName.toLowerCase() !== "p") {
-        // We have a sibling, is it a singleInput?
-        if (!condition.nextElementSibling.classList.contains("value-select")) {
+        // We have a sibling, is it a select?
+        if (!condition.nextElementSibling.classList.contains("choices")) {
           condition.nextElementSibling.remove();
         } else {
           // It is already the correct element, so return from the function
