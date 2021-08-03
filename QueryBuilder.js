@@ -134,6 +134,10 @@ class QueryBuilder {
       this.#addConditions(e.target, criteriaInput.value);
     })
     button.parentNode.insertBefore(criteriumSelect, button);
+    const linkElement = document.createElement("p");
+    linkElement.classList.add("criteria-link");
+    linkElement.innerText = "OR";
+    button.parentNode.insertBefore(linkElement, button);
     this.#addConditions(criteriaInput, criteriaInput.value);
   }
 
@@ -167,6 +171,13 @@ class QueryBuilder {
     conditionSelect.classList.add("condition-select");
     conditionContainer.appendChild(conditionSelect);
     conditionsDiv.insertBefore(conditionContainer, addConditionButton);
+    // There is something above this condition
+    if (conditionContainer.previousElementSibling !== null) {
+      const conditionsLink = document.createElement("p");
+      conditionsLink.classList.add("conditions-link");
+      conditionsLink.innerHTML = "AND";
+      conditionContainer.parentElement.insertBefore(conditionsLink, conditionContainer);
+    }
 
     let conditionSelects = conditionsDiv.querySelectorAll(".condition-select");
     conditionSelects.forEach((condition) => {
@@ -279,6 +290,10 @@ class QueryBuilder {
       removeCriteriumButton.innerHTML = "✕";
       lastInput.parentNode.insertBefore(removeCriteriumButton, lastInput.nextElementSibling);
       removeCriteriumButton.addEventListener("click", (e) => {
+        const linkElement = lastInput.parentElement.previousElementSibling;
+        if (linkElement) {
+          linkElement.remove();
+        }
         const siblings = removeCriteriumButton.parentElement.parentElement.children;
         // If this is the last element, remove the entire element, otherwise remove only this one
         if (siblings.length > 2) {

@@ -23,11 +23,6 @@
   margin: 8px;
   align-self: flex-start;
 }
-.query-container > .criteria-connector {
-  font-size: 1.5rem;
-  margin: 8px;
-  cursor: default;
-}
 
 .criterium-select .remove-criterium-button {
   border: none;
@@ -91,4 +86,12 @@
 
 .conditions-container .condition-container {
   display: flex;
+}
+.conditions-container .conditions-link {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+}
+.query-container .criteria-link {
+  line-height: 2rem;
 }
