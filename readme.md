@@ -2,7 +2,7 @@
 This is a library for building search queries. It has a visual input and JSON output. All possible queries can be formed with a combination of AND and OR-statements.
 ## Installation
 Add the QueryBuilder.js and QueryBuilder.css to your project directory, install or use a cdn for [choices.js](https://github.com/Choices-js/Choices) then include as follows:
-```
+```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <link rel="stylesheet" lang="css" href="QueryBuilder.css" />
@@ -73,3 +73,8 @@ Besides `name` and `type`, multiple choice questions also need a `values` field,
   ]
 ```
 Names have their first character capitalized, underscores are converted to spaces when displayed.
+
+## TODO:
+- Make more configurable(link texts, colors)
+- Check robustness
+- Write parsers for languages/frameworks
