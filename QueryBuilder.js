@@ -15,6 +15,7 @@ class QueryBuilder {
       "notincludes": "Does not include",
       "startswith": "Starts with",
       "endswith": "Ends with",
+      "regex": "Regular expression"
     },
     "multiplechoice": {
       "isoneof": "Is one of",
@@ -24,7 +25,7 @@ class QueryBuilder {
     },
   };
   #inputTypes = {
-    "singleinput": ["equal", "notequal", "includes", "notincludes", "startswith", "endswith", "greater", "smaller"],
+    "singleinput": ["equal", "notequal", "includes", "notincludes", "startswith", "endswith", "greater", "smaller", "regex"],
     "doubleinput": ["between"],
     "select": ["isoneof", "isall", "notall", "notoneof"],
   };
@@ -107,7 +108,7 @@ class QueryBuilder {
     this.#addNewCriteriumButton(this.queryContainer);
     this.queryContainer.addEventListener("focusout", () => {
       this.#buildQuery(this.queryContainer);
-      this.element.innerText = JSON.stringify(this.getFormattedResult());
+      this.element.innerText = JSON.stringify(this.query);
     });
   }
 
@@ -170,11 +171,15 @@ class QueryBuilder {
     let conditionSelects = conditionsDiv.querySelectorAll(".condition-select");
     conditionSelects.forEach((condition) => {
       const criteriumType = this.fields.find((field) => field.name === criterium).type;
-      const conditionOptions = Object.assign(
+      let conditionOptions = Object.assign(
         {},
-        this.#conditions["general"],
         this.#conditions[criteriumType]
       );
+      
+      // Do not include the isEqual and isNotEqual options for multiplechoice
+      if (criteriumType !== "multiplechoice") {
+        conditionOptions = Object.assign(conditionOptions, this.#conditions["general"]);
+      }
       Object.entries(conditionOptions).forEach(([key, value]) => {
         const newOption = new Option(value, key);
         if (!Array.from(condition.options).find((option) => option.value === key)) {
