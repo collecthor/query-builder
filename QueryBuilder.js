@@ -116,11 +116,13 @@ class QueryBuilder {
     const criteriumButton = document.createElement("button");
     criteriumButton.classList.add("criterium-button");
     criteriumButton.innerText = "+";
-    criteriumButton.addEventListener("click", (e) => this.#addNewCriterium(e.target));
+    criteriumButton.addEventListener("click", (e) => this.#addNewCriterium(e));
     element.appendChild(criteriumButton);
   }
 
-  #addNewCriterium(button) {
+  #addNewCriterium(event) {
+    event.preventDefault();
+    const button = event.target;
     const criteriumSelect = document.createElement("div");
     criteriumSelect.classList.add("criterium-select");
     criteriumSelect.id = `criterium-select-${this.#makeid(10)}`;
@@ -159,6 +161,7 @@ class QueryBuilder {
       addConditionButton.innerText = "+ Add condition";
       addConditionButton.classList.add("add-condition-text");
       addConditionButton.addEventListener("click", (e) => {
+        e.preventDefault();
         const currentCriterium = conditionsDiv.parentNode.querySelector(".criteria-select").value;
         this.#addConditions(selectElement, currentCriterium);
       });
@@ -290,6 +293,7 @@ class QueryBuilder {
       removeCriteriumButton.innerHTML = "✕";
       lastInput.parentNode.insertBefore(removeCriteriumButton, lastInput.nextElementSibling);
       removeCriteriumButton.addEventListener("click", (e) => {
+        e.preventDefault();
         const linkElement = lastInput.parentElement.previousElementSibling;
         if (linkElement) {
           linkElement.remove();
