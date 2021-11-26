@@ -62,6 +62,7 @@ class QueryBuilder {
     // Process all criteria(AND) present
     criteria.forEach((criterium) => {
       const criteriumValue = criterium.querySelector(".criteria-select").value;
+      console.log(criteriumValue);
       let itemIndex = this.query.findIndex(item => item.id === criterium.id);
       if (itemIndex < 0) {
         // Push adds to the end of the array and returns the length; The new item has index length - 1;
@@ -71,6 +72,7 @@ class QueryBuilder {
           values: []
         }) - 1;
       }
+      this.query[itemIndex].criterium = criteriumValue;
       const conditions = criterium.querySelectorAll(".condition-container");
       const conditionValues = [];
 
