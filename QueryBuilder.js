@@ -110,19 +110,23 @@ class QueryBuilder {
       this.#buildQuery(this.queryContainer);
       this.element.innerText = JSON.stringify(this.query);
     });
+    if (this.element.innerText !== "") {
+      this.#buildFromQuery(JSON.parse(this.element.innerText));
+    }
   }
 
   #addNewCriteriumButton(element) {
     const criteriumButton = document.createElement("button");
     criteriumButton.classList.add("criterium-button");
     criteriumButton.innerText = "+";
-    criteriumButton.addEventListener("click", (e) => this.#addNewCriterium(e));
+    criteriumButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.#addNewCriterium(e.target)
+    });
     element.appendChild(criteriumButton);
   }
 
-  #addNewCriterium(event) {
-    event.preventDefault();
-    const button = event.target;
+  #addNewCriterium(button, criterium = null) {
     const criteriumSelect = document.createElement("div");
     criteriumSelect.classList.add("criterium-select");
     criteriumSelect.id = `criterium-select-${this.#makeid(10)}`;
@@ -140,10 +144,17 @@ class QueryBuilder {
     linkElement.classList.add("criteria-link");
     linkElement.innerText = "OR";
     button.parentNode.insertBefore(linkElement, button);
-    this.#addConditions(criteriaInput, criteriaInput.value);
+    if(criterium === null) {
+      this.#addConditions(criteriaInput, criteriaInput.value);
+    } else {
+      criteriaInput.value = criterium.criterium;
+      criterium.values.forEach((value) => {
+        this.#addConditions(criteriaInput, criterium.criterium, value);
+      })
+    }
   }
 
-  #addConditions(selectElement, criterium) {
+  #addConditions(selectElement, criterium, selected=null) {
     let conditionsDiv = selectElement.parentNode.querySelector(".conditions-container");
     // Refresh if a new criterium is selected
     if (this.#lastCriteria[selectElement.parentElement.id] !== criterium && conditionsDiv) {
@@ -183,7 +194,7 @@ class QueryBuilder {
     }
 
     let conditionSelects = conditionsDiv.querySelectorAll(".condition-select");
-    conditionSelects.forEach((condition) => {
+    conditionSelects.forEach((condition, i) => {
       const criteriumType = this.fields.find((field) => field.name === criterium).type;
       let conditionOptions = Object.assign(
         {},
@@ -200,14 +211,19 @@ class QueryBuilder {
           condition.add(newOption);
         }
       });
-      this.#addValueInput(condition);
-      condition.addEventListener("change", (e) => {
-        this.#addValueInput(condition);
-      });
-    })
+    });
+    if (selected) {
+      this.#addValueInput(conditionSelect, selected.value);
+      conditionSelect.value = selected.condition;
+    } else {
+      this.#addValueInput(conditionSelect);
+    }
+    conditionSelect.addEventListener("change", (e) => {
+      this.#addValueInput(conditionSelect);
+    });
   }
 
-  #addValueInput(condition) {
+  #addValueInput(condition, value=null) {
     if (this.#inputTypes["singleinput"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
       if (condition.nextElementSibling !== null && condition.nextElementSibling.tagName.toLowerCase() !== "p") {
@@ -226,6 +242,9 @@ class QueryBuilder {
       condition.parentNode.insertBefore(singleValueInput, condition.nextElementSibling);
       singleValueInput.focus();
       this.#addRemoveCriteriumButton(singleValueInput);
+      if(value !== null) {
+        singleValueInput.value = value;
+      }
     } else if (this.#inputTypes["doubleinput"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
       if (condition.nextElementSibling !== null && condition.nextElementSibling.tagName.toLowerCase() !== "p") {
@@ -244,13 +263,19 @@ class QueryBuilder {
       firstInput.type = "text";
       firstInput.classList.add("doubleinput-firstvalue");
       doubleInputContainer.appendChild(firstInput);
+      if (value !== null) {
+        firstInput.value = value.first;
+      }
       const separator = document.createElement("p");
       separator.innerHTML = "and";
       doubleInputContainer.appendChild(separator);
-      const secondinput = document.createElement("input");
-      secondinput.type = "text";
-      secondinput.classList.add("doubleinput-secondvalue");
-      doubleInputContainer.appendChild(secondinput);
+      const secondInput = document.createElement("input");
+      secondInput.type = "text";
+      secondInput.classList.add("doubleinput-secondvalue");
+      doubleInputContainer.appendChild(secondInput);
+      if (value !== null) {
+        secondInput.value = value.second;
+      }
       condition.parentNode.insertBefore(doubleInputContainer, condition.nextElementSibling);
       firstInput.focus();
       this.#addRemoveCriteriumButton(doubleInputContainer);
@@ -309,6 +334,13 @@ class QueryBuilder {
         this.element.innerText = JSON.stringify(this.query);
       });
     }
+  }
+
+  #buildFromQuery(query) {
+    const initialButton = this.queryContainer.querySelector(".criterium-button");
+    query.forEach((criterium) => {
+      this.#addNewCriterium(initialButton, criterium);
+    });
   }
 
   #capitalizeFirstLetter(string) {
