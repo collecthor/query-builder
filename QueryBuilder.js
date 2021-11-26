@@ -306,6 +306,9 @@ class QueryBuilder {
       const choices = new Choices(conditionSelect, {
         choices: options,
       });
+      if (value !== null) {
+        choices.items = value;
+      }
       const parentId = condition.parentNode.id;
       this.#choiceElements[parentId] = choices;
     }
