@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       "name": "favorite_color",
-      "type": "multiplechoice",
+      "type": "closed",
       "values": [
         "green",
         {"value": "bottlegreen", "label": "Best green"},

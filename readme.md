@@ -59,7 +59,7 @@ Besides `name` and `type`, multiple choice questions also need a `values` field,
     },
     {
       "name": "favorite_color",
-      "type": "multiplechoice",
+      "type": "closed",
       "values": [
         "green",
         "red",

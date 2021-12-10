@@ -17,7 +17,7 @@ class QueryBuilder {
       "endswith": "Ends with",
       "regex": "Regular expression"
     },
-    "multiplechoice": {
+    "closed": {
       "isoneof": "Is one of",
       "isall": "Is all",
       "notall": "Is not all",
@@ -203,8 +203,8 @@ class QueryBuilder {
         this.#conditions[criteriumType]
       );
       
-      // Do not include the isEqual and isNotEqual options for multiplechoice
-      if (criteriumType !== "multiplechoice") {
+      // Do not include the isEqual and isNotEqual options for closed questions
+      if (criteriumType !== "closed") {
         conditionOptions = Object.assign(conditionOptions, this.#conditions["general"]);
       }
       Object.entries(conditionOptions).forEach(([key, value]) => {
