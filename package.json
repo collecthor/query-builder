@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/collecthor/query-builder/issues"
   },
-  "homepage": "https://github.com/collecthor/query-builder#readme"
+  "homepage": "https://github.com/collecthor/query-builder#readme",
+  "dependencies": {
+    "choices.js": "^9.0.1"
+  }
 }
