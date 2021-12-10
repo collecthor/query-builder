@@ -300,10 +300,17 @@ class QueryBuilder {
       const criterium = condition.parentNode.parentNode.parentNode.querySelector(".criteria-select").value;
       const field = this.fields.find((field) => field.name === criterium);
       const options = field.values.map((value) => {
-        return {
-          label: this.#capitalizeFirstLetter(value),
-          value,
-        };
+        if (typeof value === "string") {
+          return {
+            label: this.#capitalizeFirstLetter(value),
+            value,
+          };
+        } else if (typeof value === "object") {
+          return {
+            label: value.label,
+            value: value.value,
+          };
+        }
       });
       const choices = new Choices(conditionSelect, {
         choices: options,

@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "type": "multiplechoice",
       "values": [
         "green",
+        {"value": "bottlegreen", "label": "Best green"},
         "red",
         "blue",
         "yellow",
