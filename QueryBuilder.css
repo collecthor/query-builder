@@ -56,10 +56,17 @@
   height: 3rem;
   margin-right: 20px;
   margin-bottom: 0;
+  margin-top: 8px;
 }
+
 .query-container .choices .choices__inner {
   min-width: 200px;
   padding: 0;
+  min-height: 0px;
+}
+
+.query-container .choices::after {
+  top: 40% !important;
 }
 
 .query-container .choices__input:focus-visible {
