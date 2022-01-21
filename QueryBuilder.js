@@ -79,7 +79,7 @@ class QueryBuilder {
         let value = null;
         // Handle different input types
         if (condition.querySelector(".value-singleinput") !== null) {
-          value = condition.querySelector(".value-singleinput").value;
+          value = condition.querySelector(".value-singleinput").innerHTML;
         } else if (condition.querySelector(".value-doubleinput") !== null) {
           value = {
             first: condition.querySelector(".doubleinput-firstvalue").value,
