@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/collecthor/query-builder.git"
   },
-  "author": "Rick Wouters <rick@happytechnology.nl>",
+  "author": "Collecthor <info@collecthor.nl>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/collecthor/query-builder/issues"
