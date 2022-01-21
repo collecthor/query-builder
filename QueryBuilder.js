@@ -41,7 +41,7 @@ class QueryBuilder {
     // Check parameters given and convert to element if needed
     this.element = element;
     this.fields = fields;
-    if (typeof element !== "string" && !element instanceof HTMLElement) {
+    if (typeof element !== "string" && !(element instanceof HTMLElement)) {
       throw TypeError("Element must be a string or element");
     }
     if (typeof element === "string") {
@@ -59,19 +59,17 @@ class QueryBuilder {
 
   #buildQuery(element) {
     const criteria = element.querySelectorAll(".criterium-select");
+    const internalQuery = [];
+
     // Process all criteria(OR) present
     criteria.forEach((criterium) => {
       const criteriumValue = criterium.querySelector(".criteria-select").value;
-      let itemIndex = this.query.findIndex(item => item.id === criterium.id);
-      if (itemIndex < 0) {
-        // Push adds to the end of the array and returns the length; The new item has index length - 1;
-        itemIndex = this.query.push({
-          id: criterium.id,
-          criterium: criteriumValue,
-          values: []
-        }) - 1;
-      }
-      this.query[itemIndex].criterium = criteriumValue;
+      // Push adds to the end of the array and returns the length; The new item has index length - 1;
+      const itemIndex = internalQuery.push({
+        criterium: criteriumValue,
+        values: []
+      }) - 1;
+
       const conditions = criterium.querySelectorAll(".condition-container");
       const conditionValues = [];
 
@@ -95,8 +93,11 @@ class QueryBuilder {
           value,
         });
       });
-      this.query[itemIndex].values = conditionValues;
+      internalQuery[itemIndex].values = conditionValues;
     });
+
+    this.query = internalQuery;
+    this.element.innerText = JSON.stringify(this.query);
   }
 
   #setupQueryContainer() {
@@ -111,9 +112,10 @@ class QueryBuilder {
       this.#buildQuery(this.queryContainer);
       this.element.innerText = JSON.stringify(this.query);
     });
-    if (this.element.innerText !== "") {
+    if (this.element.innerText !== "" && this.element.innerText !== undefined) {
       this.#buildFromQuery(JSON.parse(this.element.innerText));
     }
+    this.#buildQuery(this.queryContainer);
   }
 
   #addNewCriteriumButton(element) {
@@ -132,10 +134,10 @@ class QueryBuilder {
     criteriumSelect.classList.add("criterium-select");
     criteriumSelect.id = `criterium-select-${this.#makeid(10)}`;
     const options = [];
-    this.fields.map(field => field.name).forEach((field) => {
+    this.fields.forEach((field) => {
       options.push({ 
-        label: this.#formatName(field), 
-        value: field
+        label: this.#formatName(field.label === undefined || field.label === null ? field.value : field.label), 
+        value: field.value
       });
     });
     const choiceContainer = document.createElement("div");
@@ -163,6 +165,7 @@ class QueryBuilder {
         this.#addConditions(choiceSelect, criterium.criterium, value);
       })
     }
+    this.#buildQuery(this.queryContainer);
   }
 
   #addConditions(selectElement, criterium, selected=null) {
@@ -208,7 +211,7 @@ class QueryBuilder {
 
     let conditionSelects = conditionsDiv.querySelectorAll(".condition-select");
     conditionSelects.forEach((condition, i) => {
-      const criteriumType = this.fields.find((field) => field.name === criterium).type;
+      const criteriumType = this.fields.find((field) => field.value === criterium).type;
       let conditionOptions = Object.assign(
         {},
         this.#conditions[criteriumType]
@@ -249,9 +252,11 @@ class QueryBuilder {
         }
       }
       // Everything is set up to create a new input element
-      const singleValueInput = document.createElement("input");
-      singleValueInput.type = "text";
+      const singleValueInput = document.createElement("span");
+      singleValueInput.role = "textbox";
+      singleValueInput.contentEditable = true;
       singleValueInput.classList.add("value-singleinput");
+      singleValueInput.classList.add("textarea");
       condition.parentNode.insertBefore(singleValueInput, condition.nextElementSibling);
       singleValueInput.focus();
       this.#addRemoveCriteriumButton(singleValueInput);
@@ -309,17 +314,17 @@ class QueryBuilder {
       conditionSelect.classList.add("value-select");
       condition.parentNode.insertBefore(conditionSelect, condition.nextElementSibling);
       const criterium = condition.parentNode.parentNode.parentNode.querySelector(".criteria-select").value;
-      const field = this.fields.find((field) => field.name === criterium);
-      const options = field.values.map((value) => {
+      const field = this.fields.find((singleField) => singleField.value === criterium);
+      const options = field.values.map((singleField) => {
         if (typeof value === "string") {
           return {
-            label: this.#capitalizeFirstLetter(value),
-            value,
+            label: this.#capitalizeFirstLetter(singleField),
+            value: singleField,
           };
         } else if (typeof value === "object") {
           return {
-            label: value.label,
-            value: value.value,
+            label: singleField.label,
+            value: singleField.value,
           };
         }
       });
@@ -350,11 +355,16 @@ class QueryBuilder {
         // If this is the last element, remove the entire element, otherwise remove only this one
         if (siblings.length > 2) {
           removeCriteriumButton.parentElement.remove();
+          if (siblings[0].classList.contains("conditions-link")) {
+            siblings[0].remove();
+          }
         } else {
+          // remove the OR text that links the criterium boxes
+          removeCriteriumButton.parentElement.parentElement.parentElement.nextElementSibling.remove();
+          // remove criteria box
           removeCriteriumButton.parentElement.parentElement.parentElement.remove();
         }
         this.#buildQuery(this.queryContainer);
-        this.element.innerText = JSON.stringify(this.query);
       });
     }
   }
@@ -384,4 +394,7 @@ class QueryBuilder {
     }
     return result;
   }
+}
+if (typeof module !== "undefined") {
+  module.exports = QueryBuilder;
 }

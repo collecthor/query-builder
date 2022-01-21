@@ -45,34 +45,72 @@ There are no "Greater/smaller than or equal to", these can be made by adjusting 
 - Not one of (`notoneof`)
 
 Single choice questions can be built by using `isall` and using only one item.
-Besides `name` and `type`, multiple choice questions also need a `values` field, indicating all possible values.
+Besides `value`, `label` and `type`, multiple choice questions also need a `values` field, indicating all possible values.
 ## Sample field setup
 ```
 [
     {
-      "name": "score",
+      "value": "score",
+      "label": "Score",
       "type": "number",
     },
     {
-      "name": "country",
+      "value": "country",
+      "label": "Country",
       "type": "text",
     },
     {
-      "name": "favorite_color",
+      "value": "favorite_color",
+      "label": "Favorite Color",
       "type": "closed",
       "values": [
-        "green",
-        "red",
-        "blue",
-        "yellow",
-        "pink",
-        "black",
-        "white",
+        {"value": "green", "label": "Green"},
+        {"value": "bottlegreen", "label": "Best green"},
+        {"value": "red", "label": "Red"},
+        {"value": "blue", "label": "Blue"},
+        {"value": "yellow", "label": "Yellow"},
+        {"value": "orange", "label": "Orange"},
+        {"value": "pink", "label": "Pink"},
+        {"value": "black", "label": "Black"},
+        {"value": "white", "label": "White"},
       ],
     }
   ]
 ```
-Names have their first character capitalized, underscores are converted to spaces when displayed.
+The `label` value will be the displayed value in the dropdowns, the `value` value will be the value that is programatically returned (non-user facing).
+
+## Output
+The output of this builder can be found in the "innerText" of the element that was given. It is stored as JSON.
+See an example output below:
+```
+[
+    {
+      "criterium":"score",
+      "values": [
+        {
+          "condition":"greater",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "criterium":"favorite_color",
+      "values": [
+        {
+          "condition":"isoneof",
+          "value": [
+            "green"
+          ]
+        }
+      ]
+    }
+]
+```
+
+## Testing:
+This library contains tests in the file `QueryBuilder.test.js`. It is designed to use the JEST library. To run the tests locally follow the following steps:
+- Run `npm install`
+- Run `npm test`
 
 ## TODO:
 - Make more configurable(link texts, colors)

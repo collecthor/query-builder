@@ -1,25 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
   const fields = [
     {
-      "name": "score",
+      "value": "score",
+      "label": "Score",
       "type": "number",
     },
     {
-      "name": "country",
+      "value": "country",
+      "label": "Country",
       "type": "text",
     },
     {
-      "name": "favorite_color",
+      "value": "favorite_color",
+      "label": "Favorite Color",
       "type": "closed",
       "values": [
-        "green",
+        {"value": "green", "label": "Green"},
         {"value": "bottlegreen", "label": "Best green"},
-        "red",
-        "blue",
-        "yellow",
-        "pink",
-        "black",
-        "white",
+        {"value": "red", "label": "Red"},
+        {"value": "blue", "label": "Blue"},
+        {"value": "yellow", "label": "Yellow"},
+        {"value": "orange", "label": "Orange"},
+        {"value": "pink", "label": "Pink"},
+        {"value": "black", "label": "Black"},
+        {"value": "white", "label": "White"},
       ],
     }
   ];
