@@ -151,6 +151,8 @@ class QueryBuilder {
     });
     const choice = new Choices(choiceSelect, {
       choices: options,
+      allowHTML: true,
+      itemSelectText: '',
     });
     button.parentNode.insertBefore(criteriumSelect, button);
     const linkElement = document.createElement("p");
@@ -160,10 +162,10 @@ class QueryBuilder {
     if(criterium === null) {
       this.#addConditions(choiceSelect, choiceSelect.value);
     } else {
-      choiceSelect.value = criterium.criterium;
+      choice.setChoiceByValue(criterium.criterium);
       criterium.values.forEach((value) => {
         this.#addConditions(choiceSelect, criterium.criterium, value);
-      })
+      });
     }
     this.#buildQuery(this.queryContainer);
   }
@@ -261,7 +263,7 @@ class QueryBuilder {
       singleValueInput.focus();
       this.#addRemoveCriteriumButton(singleValueInput);
       if(value !== null) {
-        singleValueInput.value = value;
+        singleValueInput.textContent = value;
       }
     } else if (this.#inputTypes["doubleinput"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
@@ -330,12 +332,16 @@ class QueryBuilder {
       });
       const choices = new Choices(conditionSelect, {
         choices: options,
+        allowHTML: true,
+        itemSelectText: '',
       });
       if (value !== null) {
         choices.items = value;
+        choices.setChoiceByValue(value);
       }
       const parentId = condition.closest(".condition-container").id;
       this.#choiceElements[parentId] = choices;
+      this.#addRemoveCriteriumButton(conditionSelect.parentNode.parentNode);
     }
   }
 

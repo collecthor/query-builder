@@ -8,11 +8,11 @@
   border: 1px solid grey;
   font-family: Arial, Helvetica, sans-serif;
   display: flex;
-	flex-direction: column;
-	flex-wrap: nowrap;
-	justify-content: center;
-	align-items: center;
-	align-content: stretch;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  align-content: stretch;
 }
 
 .query-container > .criterium-button {
@@ -34,6 +34,7 @@
   margin: 8px;
   /* align-self: flex-start; */
   padding: 8px;
+  width: 95%;
 }
 
 .criterium-select .remove-criterium-button {
@@ -66,19 +67,16 @@
 }
 .query-container .choices {
   height: 3rem;
-  margin-right: 20px;
+  margin-right: 10px;
   margin-bottom: 0;
   margin-top: 8px;
+  min-width: 200px;
 }
 
 .query-container .choices .choices__inner {
-  min-width: 200px;
-  padding: 0;
+  width: fit-content;
+  padding-right: 25px;
   min-height: 0px;
-}
-
-.query-container .choices::after {
-  top: 40% !important;
 }
 
 .query-container .choices__input:focus-visible {
