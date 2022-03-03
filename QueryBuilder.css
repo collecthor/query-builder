@@ -27,23 +27,28 @@
   align-items: center;
   text-align: center;
 }
-.query-container > .criterium-select {
+.query-container > .criterium-container {
   min-height: 3rem;
   background-color: rgb(239, 239, 239);
-  display: flex;
   margin: 8px;
   /* align-self: flex-start; */
   padding: 8px;
   width: 95%;
+  display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+	align-content: stretch;
 }
 
-.criterium-select .remove-criterium-button {
+.criterium-container .remove-criterium-button {
   border: none;
   margin-right: 8px;
   font-size: 1.2rem;
 }
 
-.criterium-select .add-condition-text {
+.criterium-container .add-condition-text {
   font-size: 0.7rem;
   text-align: center;
   margin: 0;

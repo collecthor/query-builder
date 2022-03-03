@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "es2015",
+        "target": "es2015",
+        "lib": ["es5", "es6", "dom"],
+        "skipLibCheck": true,
+        "outDir": "./",
+        "rootDir": "src",
+        "moduleResolution": "node",
+    },
+    "include": [
+        "./"
+    ],
+    "exclude": [
+        "node_modules",
+    ]
+}
