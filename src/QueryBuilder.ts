@@ -44,19 +44,21 @@ class QueryBuilder {
   };
 
   // Variables
+  // @ts-ignore
   private choiceElements: Choices[] = [];
   private element: HTMLElement;
   private fields: QueryBuilderField[];
   private queryContainer: HTMLDivElement|null = null;
+  private criteriumButton: HTMLButtonElement|null = null;
   private lastCriteria = {};
-  private _query: QueryBuilderCriterium[] = [];
+  private _query: QueryBuilderCriterium[][] = [];
 
   // Getters & Setters
-  public get query(): QueryBuilderCriterium[] {
+  public get query(): QueryBuilderCriterium[][] {
     return this._query;
   }
 
-  public set query(value: QueryBuilderCriterium[]) {
+  public set query(value: QueryBuilderCriterium[][]) {
     this._query = value;
     this.buildFromQuery(value);
   }
@@ -75,6 +77,7 @@ class QueryBuilder {
     } else {
       this.element = element;
     }
+    // @ts-ignore
     if (typeof Choices === 'undefined') {
       throw Error("Choices.js is needed for this library to work properly");
     }
@@ -82,7 +85,7 @@ class QueryBuilder {
     this.setupQueryContainer();
   }
 
-  private buildQuery(element): void {
+  private buildResult(element): void {
     const criteria = element.querySelectorAll(".criterium-container");
     const internalQuery = [];
 
@@ -113,7 +116,7 @@ class QueryBuilder {
           value = this.choiceElements[condition.id].getValue(true);
         }
         conditionValues = {
-          criteriumValue: criteriumValue,
+          criterium: criteriumValue,
           condition: conditionValue,
           value,
         };
@@ -121,7 +124,7 @@ class QueryBuilder {
       internalQuery[itemIndex].push(conditionValues);
     });
 
-    this.query = internalQuery;
+    this._query = internalQuery;
     // this.dispatchEvent(new Event('queryChanged'));
     this.element.innerText = JSON.stringify(this.query);
   }
@@ -133,47 +136,53 @@ class QueryBuilder {
     queryContainer.classList.add("query-container");
     queryContainer.id = `query-container-${this.makeid(10)}`;
     this.queryContainer = this.element.parentNode.insertBefore(queryContainer, this.element);
-    this.addNewCriteriumButton(this.queryContainer);
-    this.queryContainer.addEventListener("focusout", () => {
-      this.buildQuery(this.queryContainer);
-      this.element.innerText = JSON.stringify(this.query);
-    });
-    if (this.element.innerText !== "" && this.element.innerText !== undefined) {
-      this.buildFromQuery(JSON.parse(this.element.innerText));
-    }
-    this.buildQuery(this.queryContainer);
-  }
 
-  private addNewCriteriumButton(element): void {
+    // create "criterium container" button
     const criteriumButton = document.createElement("button");
     criteriumButton.classList.add("criterium-button");
     criteriumButton.innerText = "+";
     criteriumButton.addEventListener("click", (e) => {
       e.preventDefault();
-      this.addNewCriterium(e.target as HTMLElement);
+      this.addNewCriterium(this.addNewCriteriumContainer());
     });
-    element.appendChild(criteriumButton);
+    this.criteriumButton = queryContainer.appendChild(criteriumButton);
+    
+    // set eventlistener to rebuild result when something happens
+    this.queryContainer.addEventListener("focusout", () => {
+      this.buildResult(this.queryContainer);
+      this.element.innerText = JSON.stringify(this.query);
+    });
+
+    // setup builder using existing result
+    if (this.element.innerText !== "" && this.element.innerText !== undefined) {
+      this.buildFromQuery(JSON.parse(this.element.innerText));
+    }
+    
+    // run build result once
+    this.buildResult(this.queryContainer);
   }
 
-  private addNewCriterium(button: Element, criteriumContainer: HTMLDivElement|null = null, criterium: { criterium: string; condition: string; value: any; }|null  = null): void {
-    // check if criteriumContainer was passed if not create one
-    if (criteriumContainer === null) {
-      criteriumContainer = document.createElement("div");
-      criteriumContainer.classList.add("criterium-container");
-      criteriumContainer.id = `criterium-container-${this.makeid(10)}`;
-
-      // add criteria link (OR text) if new criteriumContainer was made
+  private addNewCriteriumContainer(): HTMLDivElement {
+    const criteriumContainer = document.createElement("div");
+    criteriumContainer.classList.add("criterium-container");
+    criteriumContainer.id = `criterium-container-${this.makeid(10)}`;
+    
+    if (this.queryContainer.querySelector(".criterium-container") !== null) {
       const linkElement = document.createElement("p");
       linkElement.classList.add("criteria-link");
       linkElement.innerText = "OR";
-      button.parentNode.insertBefore(linkElement, button);
+      this.queryContainer.insertBefore(linkElement, this.criteriumButton);
     }
-
+    this.queryContainer.insertBefore(criteriumContainer, this.criteriumButton);
+    return criteriumContainer;
+  }
+  
+  private addNewCriterium(criteriumContainer: HTMLDivElement, criterium: { criterium: string; condition: string; value: any; }|null  = null): void {
     // create criterium
     // create criterium select
-    const criteriumSelect = document.createElement("div");
-    criteriumSelect.classList.add("criterium");
-    criteriumSelect.id = `criterium-${this.makeid(10)}`;
+    const criteriumElement = document.createElement("div");
+    criteriumElement.classList.add("criterium");
+    criteriumElement.id = `criterium-${this.makeid(10)}`;
 
     // gather criterium options
     const options: {label: string, value: any}[] = [];
@@ -187,124 +196,112 @@ class QueryBuilder {
     // build choices dropdown to select criterium
     const choiceContainer = document.createElement("div");
     choiceContainer.classList.add("criteria-choice-container");
-    criteriumSelect.appendChild(choiceContainer);
+    criteriumElement.appendChild(choiceContainer);
     const choiceSelect = document.createElement("select");
     choiceSelect.classList.add("criteria-select");
     choiceContainer.appendChild(choiceSelect);
 
     // add listener to change events of criterium selector
     choiceSelect.addEventListener("change", (e) => {
-      this.addValueSelector(e.target as HTMLElement, choiceSelect.value);
+      this.addConditionSelector(criteriumElement, choiceSelect.value);
     });
 
     // create choices dropdown
+    // @ts-ignore
     const choice = new Choices(choiceSelect, {
       choices: options,
+      allowHTML: true,
       itemSelectText: '',
     });
-    criteriumSelect.appendChild(button);
 
-    // add criterium value selector to criterium
-    if(criterium === null) {
-      this.addValueSelector(choiceSelect, choiceSelect.value);
-    } else {
-      choice.setChoiceByValue(criterium.criterium);
-      this.addValueSelector(choiceSelect, criterium.criterium, criterium.value);
-    }
-    this.buildQuery(this.queryContainer);
-  }
-
-  private addValueSelector(criteriumElement: HTMLElement, criterium: string, selected=null): void {
-
-    // If a new criterium is selected, the old value selector
-    if (this.lastCriteria[criteriumElement.closest(".criterium-container").id] !== criterium) {
-      criteriumElement.querySelectorAll(".condition-container, .conditions-link").forEach((condition) => {
-        condition.remove();
-      });
-    }
-
-    // set the last criteria
-    this.lastCriteria[criteriumElement.closest(".criterium-container").id] = criterium;
     
-    // create condition container
-    const conditionsDiv = document.createElement("div");
-    conditionsDiv.classList.add("conditions-container");
-
-    // create add condition button if last value selector
-    let addConditionButton = criteriumElement.closest(".criterium-container").querySelector(".add-condition-text");
-    if (criteriumElement.parentElement.lastElementChild === criteriumElement) {
-    
-      addConditionButton = document.createElement("p");
-      addConditionButton.textContent = "+ Add condition";
-      addConditionButton.classList.add("add-condition-text");
+    // add create AND button
+    if (criteriumContainer.querySelector(".add-condition-button") === null) {
+      criteriumContainer.appendChild(criteriumElement);
+      const addConditionButton = document.createElement("button");
+      addConditionButton.classList.add("add-condition-button");
+      addConditionButton.innerText = "+ add 'AND' condition";
       addConditionButton.addEventListener("click", (e) => {
         e.preventDefault();
-        this.addValueSelector(criteriumElement, criterium, null);
+        this.addNewCriterium(criteriumContainer)
       });
-      const criteriumSelect = criteriumElement.closest(".criterium-container");
-      criteriumSelect.appendChild(conditionsDiv);
-      conditionsDiv.appendChild(addConditionButton);
-    }
-    
-    // create value selector container
-    const conditionContainer = document.createElement("div");
-    conditionContainer.classList.add("condition-container");
-    conditionContainer.id = `condition-container-${this.makeid(10)}`;
-    const conditionSelect = document.createElement("select");
-    conditionSelect.classList.add("condition-select");
-    conditionContainer.appendChild(conditionSelect);
-    conditionsDiv.insertBefore(conditionContainer, addConditionButton);
-    
-    // There is something above this condition
-    if (conditionContainer.previousElementSibling !== null) {
+      criteriumContainer.appendChild(addConditionButton);
+    } else {
+      criteriumContainer.insertBefore(criteriumElement, criteriumContainer.querySelector(".add-condition-button"));
+      
       const conditionsLink = document.createElement("p");
       conditionsLink.classList.add("conditions-link");
       conditionsLink.innerHTML = "AND";
-      conditionContainer.parentElement.insertBefore(conditionsLink, conditionContainer);
+      criteriumContainer.insertBefore(conditionsLink, criteriumElement);
     }
 
-    // create condition selector
-    let conditionSelects = conditionsDiv.querySelectorAll(".condition-select");
-    conditionSelects.forEach((condition: HTMLSelectElement, i) => {
-      const criteriumType = this.fields.find((field) => field.value === criterium).type;
-      let conditionOptions = Object.assign(
-        {},
-        this.conditions[criteriumType]
-      );
-      
-      // Do not include the isEqual and isNotEqual options for closed questions
-      if (criteriumType !== "closed") {
-        conditionOptions = Object.assign(conditionOptions, this.conditions["general"]);
-      }
-      Object.entries(conditionOptions).forEach(([key, value]) => {
-        const newOption = new Option(value as string, key);
-        if (!Array.from(condition.options).find((option) => option.value === key)) {
-          condition.add(newOption);
-        }
-      });
-    });
-
-    // add value input - if selected set value
-    if (selected) {
-      this.addValueInput(conditionSelect, selected.value);
-      conditionSelect.value = selected.condition;
+    // add criterium value selector to criterium
+    if(criterium === null) {
+      this.addConditionSelector(criteriumElement, choiceSelect.value);
     } else {
-      this.addValueInput(conditionSelect);
+      choice.setChoiceByValue(criterium.criterium);
+      this.addConditionSelector(criteriumElement, criterium.criterium, criterium.value);
     }
-
-    // add listener to change events of condition selector
-    conditionSelect.addEventListener("change", (e) => {
-      this.addValueInput(conditionSelect);
-    });
+    this.addRemoveCriteriumButton(criteriumElement);
+    this.buildResult(this.queryContainer);
   }
 
-  private addValueInput(condition, value=null): void {
+  private addConditionSelector(criteriumElement: HTMLDivElement, criterium: string, selected=null): void {
+    // remove old condition selector
+    const oldConditionSelector = criteriumElement.querySelector(".condition-container");
+    if (oldConditionSelector !== null) {
+      oldConditionSelector.remove();
+    }
+
+    // create value selector container
+    const conditionElement = document.createElement("div");
+    conditionElement.classList.add("condition-container");
+    conditionElement.id = `condition-container-${this.makeid(10)}`;
+    const conditionSelect = document.createElement("select");
+    conditionSelect.classList.add("condition-select");
+    conditionElement.appendChild(conditionSelect);
+    
+    // gather criterium options
+    const criteriumType = this.fields.find((field) => field.value === criterium).type;
+    let conditionOptions = Object.assign(
+      {},
+      this.conditions[criteriumType]
+    );
+    
+    // Do not include the isEqual and isNotEqual options for closed questions
+    if (criteriumType !== "closed") {
+      conditionOptions = Object.assign(conditionOptions, this.conditions["general"]);
+    }
+    Object.entries(conditionOptions).forEach(([key, value]) => {
+      const newOption = new Option(value as string, key);
+      if (!Array.from(conditionSelect.options).find((option) => option.value === key)) {
+        conditionSelect.add(newOption);
+      }
+    });
+    // add listener to change events of condition selector
+    conditionSelect.addEventListener("change", (e) => {
+      this.addValueInput(criteriumElement);
+    });
+
+    criteriumElement.appendChild(conditionElement);
+
+    if (selected) {
+      this.addValueInput(criteriumElement, selected.value);
+      conditionSelect.value = selected.condition;
+    } else {
+      this.addValueInput(criteriumElement);
+    }
+  }
+
+  private addValueInput(criteriumElement: HTMLDivElement, value=null): void {
+    const condition = criteriumElement.querySelector(".condition-select") as HTMLSelectElement;
+
     if (this.inputTypes["singleinput"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
-      if (condition.nextElementSibling !== null && condition.nextElementSibling.tagName.toLowerCase() !== "p") {
+      if (criteriumElement.lastElementChild !== null && criteriumElement.querySelector(".valueinput") !== null) {
         // We have a sibling, is it a singleInput?
-        if (!condition.nextElementSibling.classList.contains("value-singleinput")) {
-          condition.nextElementSibling.remove();
+        if (criteriumElement.querySelector(".valueinput").classList.contains("value-singleinput")) {
+          criteriumElement.lastElementChild.remove();
         } else {
           // It is already the correct element, so return from the function
           return;
@@ -314,20 +311,20 @@ class QueryBuilder {
       const singleValueInput = document.createElement("span");
       singleValueInput['role'] = "textbox";
       singleValueInput.contentEditable = "true";
+      singleValueInput.classList.add("valueinput");
       singleValueInput.classList.add("value-singleinput");
       singleValueInput.classList.add("textarea");
-      condition.parentNode.insertBefore(singleValueInput, condition.nextElementSibling);
+      criteriumElement.appendChild(singleValueInput);
       singleValueInput.focus();
-      this.addRemoveCriteriumButton(singleValueInput);
       if(value !== null) {
         singleValueInput.textContent = value;
       }
     } else if (this.inputTypes["doubleinput"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
-      if (condition.nextElementSibling !== null && condition.nextElementSibling.tagName.toLowerCase() !== "p") {
-        // We have a sibling, is it a singleInput?
-        if (!condition.nextElementSibling.classList.contains("value-doubleinput")) {
-          condition.nextElementSibling.remove();
+      if (criteriumElement.lastElementChild !== null && criteriumElement.querySelector(".valueinput") !== null) {
+        // We have a sibling, is it a doubleInput?
+        if (criteriumElement.querySelector(".valueinput").classList.contains("value-doubleinput")) {
+          criteriumElement.lastElementChild.remove();
         } else {
           // It is already the correct element, so return from the function
           return;
@@ -353,15 +350,14 @@ class QueryBuilder {
       if (value !== null) {
         secondInput.value = value.second;
       }
-      condition.parentNode.insertBefore(doubleInputContainer, condition.nextElementSibling);
+      criteriumElement.appendChild(doubleInputContainer);
       firstInput.focus();
-      this.addRemoveCriteriumButton(doubleInputContainer);
     } else if (this.inputTypes["select"].includes(condition.value)) {
       // Check if the current element is already this type, otherwise add or replace
-      if (condition.nextElementSibling !== null && condition.nextElementSibling.tagName.toLowerCase() !== "p") {
+      if (criteriumElement.lastElementChild !== null && criteriumElement.querySelector(".valueinput") !== null) {
         // We have a sibling, is it a select?
-        if (!condition.nextElementSibling.classList.contains("choices")) {
-          condition.nextElementSibling.remove();
+        if (criteriumElement.querySelector(".valueinput").classList.contains("choices")) {
+          criteriumElement.lastElementChild.remove();
         } else {
           // It is already the correct element, so return from the function
           return;
@@ -371,9 +367,10 @@ class QueryBuilder {
       const conditionSelect = document.createElement("select");
       conditionSelect.multiple = true;
       conditionSelect.classList.add("value-select");
-      condition.parentNode.insertBefore(conditionSelect, condition.nextElementSibling);
-      const criterium = condition.parentNode.parentNode.parentNode.querySelector(".criteria-select").value;
+      criteriumElement.appendChild(conditionSelect);
+      const criterium = (criteriumElement.querySelector(".criteria-select") as HTMLSelectElement).value;
       const field = this.fields.find((singleField) => singleField.value === criterium);
+      // @ts-ignore
       let options: Choices.Choice[] = [];
       if (field !== undefined) {
         options = field.values.map((singleField) => {
@@ -390,8 +387,10 @@ class QueryBuilder {
           }
         });
       }
+      // @ts-ignore
       const choices = new Choices(conditionSelect, {
         choices: options,
+        allowHTML: true,
         itemSelectText: '',
       });
       if (value !== null) {
@@ -401,50 +400,54 @@ class QueryBuilder {
         choices.setChoices(value);
         choices.setChoiceByValue(value);
       }
-      const parentId = condition.closest(".condition-container").id;
-      this.choiceElements[parentId] = choices;
-      this.addRemoveCriteriumButton(conditionSelect.parentNode!.parentNode!);
+      this.choiceElements[criteriumElement.id] = choices;
     }
   }
 
-  private addRemoveCriteriumButton(lastInput: Node): void {
-    if (lastInput.parentElement!.querySelector(".remove-criterium-button") === null) {
-      const removeCriteriumButton = document.createElement("button");
-      removeCriteriumButton.classList.add("remove-criterium-button");
-      removeCriteriumButton.innerHTML = "✕";
-      lastInput.parentNode!.insertBefore(removeCriteriumButton, lastInput.nextSibling);
-      removeCriteriumButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        const linkElement = lastInput.parentElement!.previousElementSibling;
-        if (linkElement) {
-          linkElement.remove();
+  private addRemoveCriteriumButton(criteriumElement: HTMLDivElement): void {
+    const removeCriteriumButton = document.createElement("button");
+    removeCriteriumButton.classList.add("remove-criterium-button");
+    removeCriteriumButton.innerHTML = "✕";
+    criteriumElement.appendChild(removeCriteriumButton);
+    removeCriteriumButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      const linkElement = criteriumElement.previousElementSibling;
+      if (linkElement !== null && linkElement.classList.contains("criteria-link")) {
+        linkElement.remove();
+      }
+      const siblings = criteriumElement.parentElement.children;
+      // If this is the last element, remove the entire element, otherwise remove only this one
+      if (siblings.length === 2) {
+        if (criteriumElement.parentElement.previousElementSibling !== null) {
+          // remove the OR text
+          criteriumElement.parentElement.previousElementSibling.remove();
+        } else if (criteriumElement.parentElement.nextElementSibling.classList.contains("criteria-link")) {
+          // remove the OR text if it is first element
+          criteriumElement.parentElement.nextElementSibling.remove();
         }
-        const siblings = removeCriteriumButton.parentElement!.parentElement!.children;
-        // If this is the last element, remove the entire element, otherwise remove only this one
-        if (siblings.length > 2) {
-          removeCriteriumButton.parentElement!.remove();
-          if (siblings[0].classList.contains("conditions-link")) {
-            siblings[0].remove();
-          }
+        // remove criterium container
+        criteriumElement.parentElement.remove();
+      } else {
+        if (criteriumElement.previousSibling !== null) {
+          // remove the AND text that links the criteriums
+          criteriumElement.previousSibling.remove();
         } else {
-          // remove the OR text that links the criterium boxes
-          removeCriteriumButton.parentElement!.parentElement!.parentElement!.nextElementSibling!.remove();
-          // remove criteria box
-          removeCriteriumButton.parentElement!.parentElement!.parentElement!.remove();
+          // remove the AND text if it is the first element
+          criteriumElement.nextSibling.remove();
         }
-        this.buildQuery(this.queryContainer);
-      });
-    }
+        // remove criterium container
+        criteriumElement.remove();
+      }
+      this.buildResult(this.queryContainer);
+    });
   }
 
-  private buildFromQuery(query: {
-      criterium: string;
-      condition: string;
-      value: any;
-    }[]): void {
-    const initialButton = this.queryContainer.querySelector(".criterium-button");
-    query.forEach((criterium) => {
-      this.addNewCriterium(initialButton!, null, criterium);
+  private buildFromQuery(query: QueryBuilderCriterium[][]): void {
+    query.forEach((criteriumContainer) => {
+      const container = this.addNewCriteriumContainer();
+      criteriumContainer.forEach((criterium) => {
+        this.addNewCriterium(container, criterium);
+      });
     });
   }
 
