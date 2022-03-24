@@ -86,46 +86,46 @@ class QueryBuilder {
   }
 
   private buildResult(element): void {
-    const criteria = element.querySelectorAll(".criterium-container");
+    const criteriumContainers = element.querySelectorAll(".criterium-container");
     const internalQuery = [];
 
     // Process all criteria present
-    criteria.forEach((criterium) => {
-      // Push adds to the end of the array and returns the length; The new item has index length - 1;
-      const itemIndex = internalQuery.push(
-        []
-      ) - 1;
+    criteriumContainers.forEach((criteriumContainer) => {
+      const criteriumContainerValue = [];
 
-      const conditions = criterium.querySelectorAll(".condition-container");
-      let conditionValues = null;
-
+      const criteriums = criteriumContainer.querySelectorAll(".criterium");
+      console.log(criteriums);
+      
       // Process all conditions for this criterium
-      conditions.forEach((condition) => {
-        const criteriumValue = criterium.querySelector(".criteria-select").value;
-        const conditionValue = condition.querySelector(".condition-select")?.value;
+      criteriums.forEach((criteriumElement) => {
+        let conditionValues = null;
+        const criteriumValue = criteriumElement.querySelector(".criteria-select").value;
+        const conditionValue = criteriumElement.querySelector(".condition-select")?.value;
+        const valueInputElement = criteriumElement.querySelector(".valueinput");
+        console.log(valueInputElement);
         let value = null;
         // Handle different input types
-        if (condition.querySelector(".value-singleinput") !== null) {
-          value = condition.querySelector(".value-singleinput").innerHTML;
-        } else if (condition.querySelector(".value-doubleinput") !== null) {
+        if (valueInputElement.querySelector(".value-singleinput") !== null) {
+          value = valueInputElement.querySelector(".value-singleinput").innerHTML;
+        } else if (valueInputElement.querySelector(".value-doubleinput") !== null) {
           value = {
-            first: condition.querySelector(".doubleinput-firstvalue").value,
-            second: condition.querySelector(".doubleinput-secondvalue").value,
+            first: valueInputElement.querySelector(".doubleinput-firstvalue").value,
+            second: valueInputElement.querySelector(".doubleinput-secondvalue").value,
           };
-        } else if (condition.querySelector(".choices") !== null) {
-          value = this.choiceElements[condition.id].getValue(true);
+        } else if (valueInputElement.querySelector(".choices") !== null) {
+          value = this.choiceElements[criteriumElement.id].getValue(true);
         }
         conditionValues = {
           criterium: criteriumValue,
           condition: conditionValue,
           value,
         };
+        criteriumContainerValue.push(conditionValues);
       });
-      internalQuery[itemIndex].push(conditionValues);
+      internalQuery.push(criteriumContainerValue);
     });
 
     this._query = internalQuery;
-    // this.dispatchEvent(new Event('queryChanged'));
     this.element.innerText = JSON.stringify(this.query);
   }
 
@@ -278,12 +278,18 @@ class QueryBuilder {
         conditionSelect.add(newOption);
       }
     });
+    
+    if (criteriumElement.querySelector(".valueinput") !== null) {
+      criteriumElement.insertBefore(conditionElement, criteriumElement.querySelector(".valueinput"));
+    } else {
+      criteriumElement.appendChild(conditionElement);
+    }
+
     // add listener to change events of condition selector
     conditionSelect.addEventListener("change", (e) => {
       this.addValueInput(criteriumElement);
     });
 
-    criteriumElement.appendChild(conditionElement);
 
     if (selected) {
       this.addValueInput(criteriumElement, selected.value);
@@ -295,41 +301,27 @@ class QueryBuilder {
 
   private addValueInput(criteriumElement: HTMLDivElement, value=null): void {
     const condition = criteriumElement.querySelector(".condition-select") as HTMLSelectElement;
+    if (criteriumElement.querySelector(".valueinput") !== null) {
+      criteriumElement.querySelector(".valueinput").remove();
+    }
+
+    const valueInputContainer = document.createElement("div");
+    valueInputContainer.classList.add("valueinput");
+    criteriumElement.insertBefore(valueInputContainer, criteriumElement.querySelector(".remove-criterium-button"));
 
     if (this.inputTypes["singleinput"].includes(condition.value)) {
-      // Check if the current element is already this type, otherwise add or replace
-      if (criteriumElement.lastElementChild !== null && criteriumElement.querySelector(".valueinput") !== null) {
-        // We have a sibling, is it a singleInput?
-        if (criteriumElement.querySelector(".valueinput").classList.contains("value-singleinput")) {
-          criteriumElement.lastElementChild.remove();
-        } else {
-          // It is already the correct element, so return from the function
-          return;
-        }
-      }
       // Everything is set up to create a new input element
       const singleValueInput = document.createElement("span");
       singleValueInput['role'] = "textbox";
       singleValueInput.contentEditable = "true";
-      singleValueInput.classList.add("valueinput");
       singleValueInput.classList.add("value-singleinput");
       singleValueInput.classList.add("textarea");
-      criteriumElement.appendChild(singleValueInput);
+      valueInputContainer.appendChild(singleValueInput);
       singleValueInput.focus();
       if(value !== null) {
         singleValueInput.textContent = value;
       }
     } else if (this.inputTypes["doubleinput"].includes(condition.value)) {
-      // Check if the current element is already this type, otherwise add or replace
-      if (criteriumElement.lastElementChild !== null && criteriumElement.querySelector(".valueinput") !== null) {
-        // We have a sibling, is it a doubleInput?
-        if (criteriumElement.querySelector(".valueinput").classList.contains("value-doubleinput")) {
-          criteriumElement.lastElementChild.remove();
-        } else {
-          // It is already the correct element, so return from the function
-          return;
-        }
-      }
       // Everything is set up to create a new input element
       const doubleInputContainer = document.createElement("div");
       doubleInputContainer.classList.add("value-doubleinput");
@@ -350,24 +342,13 @@ class QueryBuilder {
       if (value !== null) {
         secondInput.value = value.second;
       }
-      criteriumElement.appendChild(doubleInputContainer);
+      valueInputContainer.appendChild(doubleInputContainer);
       firstInput.focus();
     } else if (this.inputTypes["select"].includes(condition.value)) {
-      // Check if the current element is already this type, otherwise add or replace
-      if (criteriumElement.lastElementChild !== null && criteriumElement.querySelector(".valueinput") !== null) {
-        // We have a sibling, is it a select?
-        if (criteriumElement.querySelector(".valueinput").classList.contains("choices")) {
-          criteriumElement.lastElementChild.remove();
-        } else {
-          // It is already the correct element, so return from the function
-          return;
-        }
-      }
-
       const conditionSelect = document.createElement("select");
       conditionSelect.multiple = true;
       conditionSelect.classList.add("value-select");
-      criteriumElement.appendChild(conditionSelect);
+      valueInputContainer.appendChild(conditionSelect);
       const criterium = (criteriumElement.querySelector(".criteria-select") as HTMLSelectElement).value;
       const field = this.fields.find((singleField) => singleField.value === criterium);
       // @ts-ignore

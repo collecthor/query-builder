@@ -29,7 +29,7 @@
 }
 .criterium-container {
   min-height: 3rem;
-  background-color: rgb(239, 239, 239);
+  background-color: #696b72;
   margin: 8px;
   /* align-self: flex-start; */
   width: 95%;
@@ -51,9 +51,31 @@
 	align-content: stretch;
 }
 
+.criterium > * {
+  margin: 10px;
+}
+
 .criteria-choice-container {
   flex-grow: 1;
+  margin: 8px 20px 8px 8px;
+  padding-right: 5px;
 }
+
+.choices {
+  width: 100%;
+  padding-right: 18px;
+}
+
+.condition-container {
+}
+
+
+.valueinput {
+  flex-grow: 3;
+  margin: 8px 20px 8px 8px;
+  padding-right: 5px;
+}
+
 
 .remove-criterium-button {
   border: none;
@@ -85,16 +107,12 @@
   width: 50px;
 }
 .query-container .choices {
-  min-height: 3rem;
-  margin-right: 10px;
-  margin-bottom: 0;
   margin-top: 8px;
-  min-width: 200px;
+  overflow: unset;
 }
 
 .query-container .choices .choices__inner {
-  width: fit-content;
-  padding-right: 25px;
+  width: 100%;
   min-height: 0px;
 }
 
@@ -126,10 +144,11 @@
 .conditions-container .condition-container {
   display: flex;
 }
-.conditions-container .conditions-link {
+.conditions-link {
   margin: 0;
   text-align: center;
   font-size: 0.8rem;
+  width: 100%;
 }
 .query-container .criteria-link {
   line-height: 2rem;
@@ -147,7 +166,6 @@
   font-size: inherit;
   padding: 1px 6px;
   display: block;
-  width: 100%;
   overflow: hidden;
   resize: both;
   min-height: 40px;
@@ -155,6 +173,5 @@
   content: "Placeholder still possible";
   color: black;
   background-color: white;
-  min-width: 200px;
   margin: 10px;
 }
