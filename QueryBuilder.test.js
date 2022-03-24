@@ -54,6 +54,7 @@ test('create empty criteria box', () => {
     document.getElementsByClassName('criterium-button')[0].click();
 
     expect(JSON.parse(document.getElementById('query-builder').innerText).length).toEqual(1);
+    expect(JSON.parse(document.getElementById('query-builder').innerText)[0].length).toEqual(1);
 });
 
 test('check if form values are set', () => {   
@@ -62,7 +63,7 @@ test('check if form values are set', () => {
 });
 
 test('output format is valid', () => {
-    expect(document.getElementById('query-builder').innerText).toEqual('[{"criterium":"country","values":[{"condition":"includes","value":""}]}]');
+    expect(document.getElementById('query-builder').innerText).toEqual('[[{"criterium":"country","condition":"includes","value":""}]]');
 });
 
 test('remove criteria box', () => {

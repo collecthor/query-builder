@@ -83,27 +83,30 @@ The `label` value will be the displayed value in the dropdowns, the `value` valu
 The output of this builder can be found in the "innerText" of the element that was given. It is stored as JSON.
 See an example output below:
 ```
-[
-    {
+[ // criterium list
+  [ // criterium container
+    { // criterium
       "criterium":"score",
-      "values": [
-        {
-          "condition":"greater",
-          "value": 2
-        }
-      ]
+      "condition":"greater",
+      "value": 2
     },
     {
       "criterium":"favorite_color",
-      "values": [
-        {
-          "condition":"isoneof",
-          "value": [
-            "green"
-          ]
-        }
+      "condition":"isoneof",
+      "value": [
+        "green"
       ]
     }
+  ],
+  [
+    {
+      "criterium":"favorite_color",
+      "condition":"isoneof",
+      "value": [
+        "yellow"
+      ]
+    }
+  ]
 ]
 ```
 
